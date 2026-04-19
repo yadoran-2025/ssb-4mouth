@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사구동성 경제 텐션 UP!</title>
+    <style>
+        /* 기본 초기화 및 폰트 설정 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* 16:9 슬라이드 컨테이너 */
+        #slide-container {
+            width: 100vw;
+            height: 56.25vw;
+            max-height: 100vh;
+            max-width: 177.78vh;
+            background-color: #ffffff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4vw;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 상단 UI (라이프, 콤보, 홈버튼) */
+        #top-ui {
+            position: absolute;
+            top: 2vw;
+            left: 3vw;
+            right: 3vw;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .left-ui-group {
+            display: flex;
+            align-items: center;
+            gap: 2vw;
+        }
+
+        #life-box { font-size: 3vw; color: #E53935; letter-spacing: 0.5vw; }
+        
+        /* 퀴즈 화면의 점수 표시 박스 */
+        #score-box {
+            font-size: 2.2vw;
+            font-weight: 900;
+            color: #1E88E5;
+            background: rgba(30, 136, 229, 0.1);
+            padding: 0.5vw 1.5vw;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .right-ui-group {
+            display: flex;
+            align-items: center;
+            gap: 2vw;
+        }
+
+        #combo-box {
+            font-size: 3.5vw;
+            font-weight: 900;
+            color: #FFB300;
+            text-shadow: 2px 2px 0px #333;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        /* 홈버튼 스타일 */
+        .home-btn {
+            padding: 0.8vw 1.2vw;
+            font-size: 1.2vw;
+            font-weight: bold;
+            color: white;
+            background-color: #607D8B;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .home-btn:hover { background-color: #455A64; transform: translateY(-2px); }
+
+        .combo-anim { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+            40%, 60% { transform: translate3d(3px, 0, 0); }
+        }
+
+        /* 타이머 바 */
+        #timer-bar-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 12px;
+            background-color: #eee;
+            display: none;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            overflow: hidden;
+        }
+
+        #timer-bar { height: 100%; width: 100%; background-color: #E53935; transform-origin: left; }
+        .run-timer { animation: shrinkTimer 4s linear forwards; }
+        @keyframes shrinkTimer {
+            0% { width: 100%; background-color: #4CAF50; }
+            50% { background-color: #FFEB3B; }
+            100% { width: 0%; background-color: #E53935; }
+        }
+
+        /* ---------- 인트로 및 조 이름 입력 화면 ---------- */
+        #intro-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 95%;
+        }
+
+        #intro-title { font-size: 4vw; font-weight: 900; color: #2C3E50; margin-bottom: 1vw; }
+
+        #team-setup-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1vw;
+            margin-bottom: 2vw;
+            width: 90%;
+            background: #f9f9f9;
+            padding: 1.5vw;
+            border-radius: 15px;
+            border: 2px solid #ddd;
+        }
+
+        .team-input-group { display: flex; flex-direction: column; align-items: flex-start; }
+        .team-input-group label { font-size: 1vw; font-weight: bold; color: #666; margin-bottom: 0.3vw; }
+        .team-name-input {
+            width: 100%;
+            padding: 0.6vw;
+            font-size: 1.2vw;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* 메인 화면 조별 점수 표시용 스타일 */
+        .team-score-display {
+            margin-top: 0.5vw;
+            font-size: 1.4vw;
+            font-weight: 900;
+            color: #1E88E5;
+            width: 100%;
+            text-align: center;
+            background: #e3f2fd;
+            padding: 0.4vw;
+            border-radius: 5px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #set-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1vw; width: 85%; }
+
+        .set-btn {
+            padding: 1.2vw;
+            font-size: 1.5vw;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            background-color: #1E88E5;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .set-btn:hover { background-color: #1565C0; transform: translateY(-2px); }
+
+        /* ---------- 퀴즈 화면 스타일 ---------- */
+        #content-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 85%;
+            margin: 0 auto;
+        }
+
+        #team-badge {
+            background-color: #2C3E50;
+            color: white;
+            padding: 0.5vw 1.5vw;
+            border-radius: 50px;
+            font-size: 1.5vw;
+            font-weight: bold;
+            margin-bottom: 1vw;
+        }
+
+        #question-number { font-size: 1.8vw; color: #888; font-weight: bold; margin-bottom: 1vw; letter-spacing: 1px; }
+
+        #question-text {
+            font-size: 4vw;
+            font-weight: 900;
+            color: #333;
+            word-break: keep-all;
+            line-height: 1.4;
+            margin-bottom: 2vw;
+            min-height: 12vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #answer-section { visibility: hidden; display: flex; flex-direction: column; align-items: center; min-height: 12vw; }
+        #answer-section.show { visibility: visible; }
+        #answer-text { font-size: 7.5vw; font-weight: 900; margin-bottom: 0.5vw; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        #explanation-text { font-size: 2vw; color: #555; background-color: #f0f0f0; padding: 0.8vw 2vw; border-radius: 10px; word-break: keep-all; }
+
+        #footer-guide {
+            position: absolute;
+            bottom: 1.5vw;
+            font-size: 1.1vw;
+            color: #888;
+            background: rgba(255,255,255,0.8);
+            padding: 0.5vw 1vw;
+            border-radius: 10px;
+        }
+        .control-key { font-weight: bold; color: #1E88E5; }
+        .danger-key { font-weight: bold; color: #E53935; }
+    </style>
+</head>
+<body>
+
+    <div id="slide-container">
+        <div id="timer-bar-container"><div id="timer-bar"></div></div>
+        
+        <div id="top-ui">
+            <div class="left-ui-group">
+                <div id="life-box">❤️❤️❤️</div>
+                <div id="score-box">0 점</div>
+            </div>
+            <div class="right-ui-group">
+                <div id="combo-box">0 COMBO!</div>
+                <button class="home-btn" onclick="returnToIntro()" title="메인 화면으로 돌아가기">🏠 홈으로</button>
+            </div>
+        </div>
+
+        <div id="intro-wrapper">
+            <h1 id="intro-title">🗣️ 사구동성! 조별 경제 퀴즈</h1>
+            
+            <div id="team-setup-section">
+                </div>
+
+            <div id="set-container">
+                </div>
+        </div>
+
+        <div id="content-wrapper">
+            <div id="team-badge">조 이름</div>
+            <div id="question-number">세트 1 - 문제 1 / 10</div>
+            <div id="question-text">여기에 문제가 표시됩니다.</div>
+            
+            <div id="answer-section">
+                <div id="answer-text">정답</div>
+                <div id="explanation-text">여기에 해설이 표시됩니다.</div>
+            </div>
+        </div>
+
+        <div id="footer-guide">
+            [정답 확인]: <span class="control-key">Enter / Space</span> &nbsp;|&nbsp; 
+            [정답 처리(콤보 UP)]: <span class="control-key">O 키</span> &nbsp;|&nbsp; 
+            [오답 처리(라이프 DOWN)]: <span class="danger-key">X 키</span>
+        </div>
+    </div>
+
+    <script>
+        const allQuizData = [
+            // [세트 1]
+            [
+                { q: "마라탕 가게에서 친구들과 꿔바로우와 마라탕을 먹는 것", a: "소비", exp: "재화와 서비스를 구매하여 만족을 얻는 행위" },
+                { q: "BTS가 빌보드 차트 진입을 위해 신곡을 녹음하는 것", a: "생산", exp: "새로운 가치(음원)를 만들어내는 행위" },
+                { q: "편의점 알바생이 한 달 일하고 통장으로 월급을 받는 것", a: "분배", exp: "노동의 대가로 임금을 받는 행위" },
+                { q: "웹툰 작가가 네이버 웹툰에 새로운 에피소드를 그리는 것", a: "생산", exp: "재화 및 서비스(콘텐츠)를 창출하는 행위" },
+                { q: "올리브영에서 세일 기간에 여드름 패치를 사는 것", a: "소비", exp: "재화를 구매하는 행위" },
+                { q: "토스(Toss) 파킹통장에 돈을 넣어두고 매일 이자를 받는 것", a: "분배", exp: "자본 제공의 대가로 이자를 받는 행위" },
+                { q: "넷플릭스 한 달 구독료를 결제하는 것", a: "소비", exp: "서비스를 이용하기 위해 지출하는 행위" },
+                { q: "쿠팡 택배 기사님이 우리 집 문 앞에 물건을 배달해 주시는 것", a: "생산", exp: "장소를 이동시켜 가치를 높이는 운송 행위" },
+                { q: "건물 주인이 1층 카페 사장님에게 매달 월세를 받는 것", a: "분배", exp: "토지 및 건물 제공의 대가(지대)를 받는 행위" },
+                { q: "다이소에서 천 원짜리 귀여운 캐릭터 볼펜을 고르는 것", a: "소비", exp: "재화를 구매하여 만족을 얻는 행위" }
+            ],
+            // [세트 2]
+            [
+                { q: "PC방에서 친구들과 롤(LOL)을 하기 위해 2시간 요금을 내는 것", a: "소비", exp: "오락 서비스를 이용하는 행위" },
+                { q: "삼성전자 공장 노동자가 최신 스마트폰 부품을 조립하는 것", a: "생산", exp: "공산품(재화)을 제조하는 행위" },
+                { q: "부모님이 주식에 투자해서 연말에 회사로부터 배당금을 받는 것", a: "분배", exp: "자본 제공에 대한 이윤을 나누어 받는 행위" },
+                { q: "스타벅스에서 친구들과 수다 떨며 프라푸치노를 마시는 것", a: "소비", exp: "음료(재화)와 공간(서비스)을 소비하는 행위" },
+                { q: "수학 학원 선생님이 칠판에 판서하며 강의하시는 것", a: "생산", exp: "교육 서비스를 창출하는 행위" },
+                { q: "치킨집 사장님이 한 달 장사 후 남은 순수익을 가져가는 것", a: "분배", exp: "기업가로서 경영의 대가(이윤)를 얻는 행위" },
+                { q: "제주도 여행 가서 쏘카(렌터카)를 2박 3일간 빌려 타는 것", a: "소비", exp: "렌탈 서비스를 대가를 주고 이용하는 행위" },
+                { q: "유튜버가 10시간 동안 밤을 새워 브이로그 영상을 편집하는 것", a: "생산", exp: "영상 콘텐츠(서비스)를 가공하고 창출하는 행위" },
+                { q: "아빠가 회사에서 부장으로 승진하여 연봉이 크게 오른 것", a: "분배", exp: "노동의 대가(임금)를 더 많이 받는 행위" },
+                { q: "영화관에 가서 카라멜 팝콘 대형 사이즈를 돈 주고 사 먹는 것", a: "소비", exp: "재화를 구매하여 소비하는 행위" }
+            ],
+            // [세트 3]
+            [
+                { q: "지하상가에서 마음에 드는 오버핏 맨투맨 티셔츠를 사는 것", a: "소비", exp: "재화를 구매하는 행위" },
+                { q: "단골 미용실에서 내 앞머리와 뒷머리를 예쁘게 자르는 것", a: "생산", exp: "미용 서비스를 창출하는 행위" },
+                { q: "엄마가 마트 정육 코너에서 저녁 거리로 삼겹살 2근을 사 오시는 것", a: "소비", exp: "식자재(재화)를 구매하는 행위" },
+                { q: "응급실에서 의사가 교통사고로 다친 환자를 수술하는 것", a: "생산", exp: "의료 서비스를 제공하는 행위" },
+                { q: "시골 할아버지가 밭을 빌려주고 매년 추수철에 땅값을 받는 것", a: "분배", exp: "토지 제공의 대가(지대)를 수취하는 행위" },
+                { q: "홍대 아이돌 굿즈샵에서 최애 멤버의 포토카드를 구매하는 것", a: "소비", exp: "만족감을 위해 재화를 얻는 행위" },
+                { q: "화물차 기사님이 부산항에서 서울로 수출용 컨테이너를 운반하는 것", a: "생산", exp: "장소를 이동시켜 가치를 높이는 운송 행위" },
+                { q: "등교하는 버스 안에서 멜론(Melon)으로 아이돌 신곡을 듣는 것", a: "소비", exp: "디지털 음원 서비스를 즐기는 행위" },
+                { q: "프로게이머가 T1 소속으로 e스포츠 대회에 출전해 경기를 하는 것", a: "생산", exp: "오락/스포츠 서비스를 창출하는 행위" },
+                { q: "비 오는 날 카카오택시를 타고 집 앞에 도착해 자동 결제되는 것", a: "소비", exp: "운송 서비스를 이용하고 대가를 지불하는 행위" }
+            ],
+            // [세트 4]
+            [
+                { q: "카페 사장님이 알바생에게 '주휴수당'을 포함해 시급을 입금해준 것", a: "분배", exp: "노동에 대한 정당한 대가(임금)를 지불하는 행위" },
+                { q: "친구 생일이 되자마자 카카오톡 치킨 기프티콘을 결제해서 보내는 것", a: "소비", exp: "전자 상품권(재화)을 구매하는 행위" },
+                { q: "대기업 주주들이 회사가 남긴 순이익의 일부를 배당금으로 나눠 갖는 것", a: "분배", exp: "자본 투자에 대한 이윤을 분배받는 행위" },
+                { q: "롯데월드 자유이용권을 끊고 하루 종일 롤러코스터를 타며 노는 것", a: "소비", exp: "테마파크의 위락 서비스를 소비하는 행위" },
+                { q: "백화점 직원이 손님 피부톤에 딱 맞는 파운데이션을 추천해 주는 것", a: "생산", exp: "판매 서비스를 통해 상품 가치를 높이는 행위" },
+                { q: "유명 작곡가가 매달 엄청난 액수의 음원 저작권료를 통장으로 받는 것", a: "분배", exp: "지식 재산권(자본) 제공 대가를 받는 행위" },
+                { q: "발레리나가 예술의 전당 대극장 무대에서 '백조의 호수' 공연을 하는 것", a: "생산", exp: "예술적 가치(서비스)를 창출하는 행위" },
+                { q: "농부 아저씨가 비닐하우스에서 탐스럽게 익은 딸기를 직접 수확하는 것", a: "생산", exp: "1차적 재화(농산물)를 획득하는 생산 행위" },
+                { q: "당근마켓 앱을 통해 우리 동네에서 상태 좋은 중고 아이패드를 사는 것", a: "소비", exp: "중고 재화를 대가를 주고 구매하는 행위" },
+                { q: "어부 아저씨가 밤샘 조업으로 바다에서 오징어를 가득 잡아 올리는 것", a: "생산", exp: "자연에서 수산 자원을 획득하는 수산업 행위" }
+            ],
+            // [세트 5]
+            [
+                { q: "버스 기사님이 이른 아침 출근하는 승객들을 태우고 노선을 운전하시는 것", a: "생산", exp: "대중교통 운송 서비스를 제공하는 행위" },
+                { q: "은행원이 고객에게 청년 우대형 청약 통장의 혜택과 가입을 도와주는 것", a: "생산", exp: "금융 서비스를 창출하여 편의를 돕는 행위" },
+                { q: "빵집 사장님이 새벽에 일어나 갓 구운 따뜻한 식빵을 오븐에서 꺼내는 것", a: "생산", exp: "원재료를 가공하여 빵(재화)을 만드는 행위" },
+                { q: "세탁소 사장님이 심하게 더러워진 내 교복을 깨끗하게 드라이클리닝 해주는 것", a: "생산", exp: "세탁 서비스를 통해 기존 재화의 가치를 증대시키는 행위" },
+                { q: "편의점 알바생이 야간 수당을 모두 합쳐서 이번 달 급여를 계좌로 받은 것", a: "분배", exp: "야간 노동을 제공한 정당한 대가를 받는 행위" },
+                { q: "유명 웹소설 작가가 밤을 새워 새로운 로맨스 판타지 원고를 집필하는 것", a: "생산", exp: "독자들이 소비할 지식 콘텐츠를 창출하는 행위" },
+                { q: "토익 학원 스타 강사가 100명 수강생 앞에서 강의하고 높은 강사료를 받은 것", a: "분배", exp: "강의(노동) 성과에 비례하는 임금을 얻는 행위" },
+                { q: "배민 라이더가 궂은 날씨에 치킨을 배달 완료하고 건당 배달 수수료를 받은 것", a: "분배", exp: "유통 과정에 기여한 몫으로 소득을 얻는 행위" },
+                { q: "자동차 공장에서 거대한 로봇 팔이 무거운 전기차 배터리를 차체에 장착하는 것", a: "생산", exp: "기계(자본)를 투입하여 완성차(재화)를 만드는 행위" },
+                { q: "체육 시간 끝나고 너무 더워서 매점에서 시원한 아이스크림을 사 먹는 것", a: "소비", exp: "갈증 해소를 위해 재화를 구매하여 소모하는 행위" }
+            ],
+            // [세트 6]
+            [
+                { q: "편의점에서 1+1 행사 중인 시원한 에너지 드링크를 2캔 집어 들고 결제하는 것", a: "소비", exp: "음료수(재화)를 지불하고 구매하는 행위" },
+                { q: "동네 내과 간호사가 감기몸살 환자의 혈압을 재고 엉덩이에 주사를 놔주는 것", a: "생산", exp: "질병 치료라는 의료 서비스를 베푸는 행위" },
+                { q: "큰 수익을 낸 회사가 1분기 실적 발표 후 주주들에게 약속된 배당금을 지급하는 것", a: "분배", exp: "자본을 댄 투자자들에게 이윤을 나누어주는 행위" },
+                { q: "식곤증이 몰려올 때 복도 자판기에서 동전 500원을 넣고 생수를 뽑아 마시는 것", a: "소비", exp: "물이라는 기본적인 재화를 대가를 주고 소비하는 행위" },
+                { q: "택배 기사님이 무거운 생수 묶음을 아파트 현관문 앞까지 안전하게 배송하는 것", a: "생산", exp: "장소적 효용을 극대화하는 운송 행위" },
+                { q: "아이돌 작곡가가 자신이 만든 노래가 재생될 때마다 발생하는 저작권료를 받는 것", a: "분배", exp: "지식재산권(자본) 제공에 대한 수입을 얻는 행위" },
+                { q: "기말고사 끝난 기념으로 친구들과 무한리필 떡볶이 뷔페에 가서 식사비를 결제하는 것", a: "소비", exp: "음식(재화)과 식당 공간(서비스)을 소비하는 행위" },
+                { q: "목수가 거친 원목을 정교하게 깎고 다듬어 세상에 하나뿐인 멋진 의자를 만드는 것", a: "생산", exp: "원자재에 기술을 가해 완성품(재화)을 만드는 행위" },
+                { q: "이디야 카페에서 방학 동안 파트타임 알바생으로 일한 대가로 최저시급을 계산해 받는 것", a: "분배", exp: "사업장에 노동을 투입한 몫(임금)을 수령하는 행위" },
+                { q: "주말 개봉하는 액션 영화를 빨리 보기 위해 스마트폰 앱으로 미리 영화표를 예매하는 것", a: "소비", exp: "영화 관람이라는 문화 서비스 비용을 지불하는 행위" }
+            ],
+            // [세트 7]
+            [
+                { q: "축구 선수가 중요 경기에서 70미터 단독 드리블 돌파에 이은 골을 팬들에게 보여주는 것", a: "생산", exp: "축구 경기를 통해 오락 서비스를 창출하는 행위" },
+                { q: "명동 5층 상가 건물주가 1층 화장품 매장 세입자로부터 매달 약속된 임대료를 받는 것", a: "분배", exp: "건물(자본)을 제공한 대가(지대)를 거둬들이는 행위" },
+                { q: "올리브영에서 유튜버가 극찬한 새로 나온 틴트를 발라보고 마음에 들어 결제하는 것", a: "소비", exp: "틴트(재화)를 구매하여 소유하는 소비 행위" },
+                { q: "시골 농부 아저씨가 정성껏 가꾼 황금빛 들판에서 가을에 무사히 햅쌀을 수확하는 것", a: "생산", exp: "자연에 노동력을 투입해 식량(재화)을 획득하는 행위" },
+                { q: "세뱃돈을 은행 정기 예금에 1년간 묶어두었더니 만기일에 소정의 이자가 통장에 찍힌 것", a: "분배", exp: "은행에 자본(예금)을 빌려준 대가(이자)를 받는 행위" },
+                { q: "겨울을 따뜻하게 나기 위해 무신사에서 가장 가성비 좋은 구스다운 롱패딩을 주문하는 것", a: "소비", exp: "방한용 의류(재화)를 구매하는 대표적인 소비 행위" },
+                { q: "방송국 예능 PD가 주말 황금 시간에 편성될 리얼 버라이어티 프로그램을 기획하고 촬영하는 것", a: "생산", exp: "시청자를 위한 재미있는 방송 콘텐츠(서비스)를 만드는 행위" },
+                { q: "중소기업 사장님이 1년간 발로 뛰며 회사가 벌어들인 총수익에서 남은 이윤을 얻는 것", a: "분배", exp: "기업을 경영한 최고 책임자로서 대가(이윤)를 챙기는 행위" },
+                { q: "네이버 웹툰에서 다음 화가 너무 궁금해서 결제해 둔 유료 '쿠키'를 3개 사용하여 보는 것", a: "소비", exp: "가상 화폐를 사용해 무형의 콘텐츠(서비스)를 소비하는 행위" },
+                { q: "애플 수석 디자이너가 내년 출시할 아이폰의 외관 재질을 고민하며 3D 모델링으로 설계하는 것", a: "생산", exp: "제품에 부가가치를 불어넣는 고도의 지적 생산 행위" }
+            ],
+            // [세트 8]
+            [
+                { q: "영업팀 아빠가 목표 실적을 달성해 연말 사내 시상식에서 두둑한 성과급 보너스를 받는 것", a: "분배", exp: "탁월한 노동과 성과에 대해 추가 보상(성과급)을 받는 행위" },
+                { q: "문방구에 들러서 교과서 필기를 예쁘게 정리하기 위해 신상 파스텔 형광펜 세트를 사는 것", a: "소비", exp: "학습에 필요한 학용품(재화)을 구매하는 행위" },
+                { q: "통영 베테랑 어부 아저씨가 겨울 새벽 바다로 나가 그물을 끌어 올려 싱싱한 갈치를 낚는 것", a: "생산", exp: "바다에서 어선(자본)과 노동력으로 수산물(재화)을 획득하는 행위" },
+                { q: "넓은 공터를 가진 사람이 주차장 사업을 하려는 기업에게 땅을 빌려주고 막대한 임대료를 받는 것", a: "분배", exp: "토지(생산 요소)를 제공한 대가로 정기적인 지대를 얻는 행위" },
+                { q: "주말에 가족들과 에버랜드에 가서 비싼 1일 자유이용권 티켓을 끊고 들어가 사파리 투어를 즐기는 것", a: "소비", exp: "테마파크의 다양한 어트랙션과 위락 시설(서비스)을 소비하는 행위" },
+                { q: "이가 시려서 찾아간 치과 원장님이 엑스레이를 찍고 충치를 갈아내어 깨끗하게 스케일링해주는 것", a: "생산", exp: "의료 지식과 장비로 구강 건강 회복이라는 의료 서비스를 베푸는 행위" },
+                { q: "실험실 대학원생이 스마트폰 배터리 수명을 늘리는 기술을 개발해 특허를 내고 특허 사용료를 받는 것", a: "분배", exp: "지식재산권(무형 자본)을 제공한 대가로 소득을 분배받는 행위" },
+                { q: "폭염으로 푹푹 찌는 날, 눈앞에 보이는 문구점에서 시원하고 달콤한 파란색 슬러시를 사서 먹는 것", a: "소비", exp: "더위와 갈증 해소를 위해 음료(재화)를 구매해 소모하는 행위" },
+                { q: "대형 마트 직원이 신선한 과일들을 눈에 띄게 진열대에 올리고 지나가는 손님들에게 시식을 권하는 것", a: "생산", exp: "판매 및 유통 서비스를 통해 과일(재화)의 시장 가치를 높이는 행위" },
+                { q: "IT 대학생 3명이 새로운 배달 앱 스타트업을 창업한 뒤 치열하게 시장을 개척해 발생한 순수익을 나누는 것", a: "분배", exp: "성공적으로 이윤을 창출한 기업가에게 주어지는 경제적 대가를 받는 행위" }
+            ]
+        ];
+
+        let currentSetIndex = 0;
+        let currentQuizData = [];
+        let currentIndex = 0;
+        let isAnswerShown = false;
+        let lives = 3;
+        let combo = 0;
+        let currentScore = 0;
+        let teamNames = [];
+        let teamScores = [0, 0, 0, 0, 0, 0, 0, 0]; // 8개 조의 최종 점수를 기록하는 배열
+
+        const introWrapperEl = document.getElementById('intro-wrapper');
+        const teamSetupSectionEl = document.getElementById('team-setup-section');
+        const contentWrapperEl = document.getElementById('content-wrapper');
+        const topUiEl = document.getElementById('top-ui');
+        const setContainerEl = document.getElementById('set-container');
+        const slideContainerEl = document.getElementById('slide-container');
+        const timerBarContainerEl = document.getElementById('timer-bar-container');
+        const timerBarEl = document.getElementById('timer-bar');
+        const lifeBoxEl = document.getElementById('life-box');
+        const scoreBoxEl = document.getElementById('score-box');
+        const comboBoxEl = document.getElementById('combo-box');
+        const teamBadgeEl = document.getElementById('team-badge');
+        const questionNumEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const answerSectionEl = document.getElementById('answer-section');
+        const answerTextEl = document.getElementById('answer-text');
+        const explanationTextEl = document.getElementById('explanation-text');
+
+        // 초기 설정: 입력창과 세트 버튼 동적 생성
+        for(let i=1; i<=8; i++) {
+            const group = document.createElement('div');
+            group.className = 'team-input-group';
+            // 각 조 이름 입력칸 아래에 조별 점수를 보여주는 박스 추가
+            group.innerHTML = `
+                <label>${i}조 이름</label>
+                <input type="text" class="team-name-input" id="team-in-${i}" placeholder="${i}조">
+                <div class="team-score-display" id="team-score-${i}">0 점</div>
+            `;
+            teamSetupSectionEl.appendChild(group);
+
+            const btn = document.createElement('button');
+            btn.className = 'set-btn';
+            btn.textContent = `세트 ${i} 시작`;
+            btn.onclick = () => startGame(i-1);
+            setContainerEl.appendChild(btn);
+        }
+
+        // 게임 시작 로직
+        function startGame(setIndex) {
+            teamNames = [];
+            for(let i=1; i<=8; i++) {
+                const val = document.getElementById(`team-in-${i}`).value.trim();
+                teamNames.push(val || `${i}조`);
+            }
+
+            currentSetIndex = setIndex;
+            currentQuizData = allQuizData[setIndex];
+            currentIndex = 0;
+            lives = 3;
+            combo = 0;
+            currentScore = 0; // 시작 시 현재 진행 중인 게임 점수 초기화
+            isAnswerShown = false;
+
+            updateLivesDisplay();
+            updateComboDisplay(false);
+            updateScoreDisplay();
+
+            introWrapperEl.style.display = 'none';
+            contentWrapperEl.style.display = 'flex';
+            topUiEl.style.display = 'flex';
+            timerBarContainerEl.style.display = 'block';
+            
+            updateSlide();
+        }
+
+        function updateLivesDisplay() {
+            let hearts = '';
+            for(let i=0; i<3; i++) hearts += (i < lives) ? '❤️' : '🖤';
+            lifeBoxEl.textContent = hearts;
+        }
+
+        function updateScoreDisplay() {
+            scoreBoxEl.textContent = `${currentScore} 점`;
+        }
+
+        function updateComboDisplay(animate) {
+            if (combo > 1) {
+                comboBoxEl.textContent = `${combo} COMBO!`;
+                comboBoxEl.style.opacity = 1;
+                if(animate) {
+                    comboBoxEl.classList.remove('combo-anim');
+                    void comboBoxEl.offsetWidth;
+                    comboBoxEl.classList.add('combo-anim');
+                }
+            } else { comboBoxEl.style.opacity = 0; }
+        }
+
+        function resetTimer() {
+            timerBarEl.classList.remove('run-timer');
+            void timerBarEl.offsetWidth;
+            timerBarEl.classList.add('run-timer');
+        }
+
+        function triggerShake() {
+            slideContainerEl.classList.remove('shake');
+            void slideContainerEl.offsetWidth;
+            slideContainerEl.classList.add('shake');
+        }
+
+        function updateSlide() {
+            const data = currentQuizData[currentIndex];
+            const currentTeam = teamNames[currentSetIndex];
+            
+            teamBadgeEl.textContent = currentTeam;
+            questionNumEl.textContent = `세트 ${currentSetIndex + 1} - 문제 ${currentIndex + 1} / 10`;
+            questionTextEl.textContent = data.q;
+            answerTextEl.textContent = data.a;
+            explanationTextEl.textContent = data.exp;
+
+            if(data.a === "생산") answerTextEl.style.color = "#1E88E5"; 
+            else if(data.a === "분배") answerTextEl.style.color = "#43A047"; 
+            else if(data.a === "소비") answerTextEl.style.color = "#E53935"; 
+
+            if (isAnswerShown) {
+                answerSectionEl.classList.add('show');
+                timerBarEl.style.animationPlayState = 'paused';
+            } else {
+                answerSectionEl.classList.remove('show');
+                timerBarEl.style.animationPlayState = 'running';
+                resetTimer();
+            }
+        }
+
+        function showAnswerAction() {
+            if (!isAnswerShown) { isAnswerShown = true; updateSlide(); }
+        }
+
+        // 정답 처리 (O키)
+        function handleCorrect() {
+            combo++;
+            currentScore += 100 + (combo * 10); // 기본 100점 + 콤보당 10점 추가 보너스
+            teamScores[currentSetIndex] = currentScore; // 글로벌 조별 점수판에도 현재 점수 저장
+            
+            updateScoreDisplay();
+            updateComboDisplay(true);
+            
+            if(combo >= 3) triggerShake();
+            moveToNextQuestion(); 
+        }
+
+        // 오답 처리 (X키)
+        function handleWrong() {
+            if (lives <= 0) return; 
+            
+            combo = 0;
+            lives--;
+            updateComboDisplay(false);
+            updateLivesDisplay();
+
+            slideContainerEl.style.backgroundColor = "#ffebee";
+            setTimeout(() => { slideContainerEl.style.backgroundColor = "#ffffff"; }, 200);
+
+            if (lives <= 0) {
+                setTimeout(() => { alert(`💀 [${teamNames[currentSetIndex]}] 게임 오버! 최종 점수: ${currentScore}점`); returnToIntro(); }, 300);
+            } else {
+                moveToNextQuestion(); 
+            }
+        }
+
+        function moveToNextQuestion() {
+            if (currentIndex < currentQuizData.length - 1) {
+                currentIndex++;
+                isAnswerShown = false;
+                updateSlide();
+            } else {
+                alert(`🏆 축하합니다! [${teamNames[currentSetIndex]}] 세트 클리어! 최종 점수: ${currentScore}점`);
+                returnToIntro();
+            }
+        }
+
+// 초기 화면으로 복귀하는 기능 (홈버튼과 게임오버 시 작동)
+        function returnToIntro() {
+            // 1. 현재 8개 조 중 최고 점수 찾기
+            const maxScore = Math.max(...teamScores);
+
+            // 2. 메인 화면으로 돌아갈 때, 점수판 업데이트 및 왕관 표시
+            for(let i=1; i<=8; i++) {
+                const scoreDisplayEl = document.getElementById(`team-score-${i}`);
+                if(scoreDisplayEl) {
+                    // 최고 점수이면서 0점보다 높을 때만 점수 앞에 왕관(👑) 추가
+                    if (teamScores[i-1] === maxScore && maxScore > 0) {
+                        scoreDisplayEl.textContent = `👑 ${teamScores[i-1]} 점`;
+                    } else {
+                        scoreDisplayEl.textContent = `${teamScores[i-1]} 점`;
+                    }
+                }
+            }
+
+            contentWrapperEl.style.display = 'none';
+            topUiEl.style.display = 'none';
+            timerBarContainerEl.style.display = 'none';
+            introWrapperEl.style.display = 'flex';
+        }
+        // 키보드 인식 이벤트
+        window.addEventListener('keydown', (e) => {
+            if (introWrapperEl.style.display !== 'none') return;
+
+            const code = e.code;
+            const key = e.key.toLowerCase();
+
+            if (code === 'Enter' || code === 'Space' || key === ' ') {
+                e.preventDefault();
+                showAnswerAction();
+            } 
+            else if (code === 'KeyO' || key === 'o' || key === 'ㅐ') {
+                e.preventDefault();
+                handleCorrect();
+            } 
+            else if (code === 'KeyX' || key === 'x' || key === 'ㅌ') {
+                e.preventDefault();
+                handleWrong();
+            }
+        });    
+    </script>
+</body>
+</html>
