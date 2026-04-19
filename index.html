@@ -291,6 +291,7 @@
         </div>
 
         <div id="footer-guide">
+            [이전 문제]: <span class="control-key">← (좌방향키)</span> &nbsp;|&nbsp;
             [정답 확인]: <span class="control-key">Enter / Space</span> &nbsp;|&nbsp; 
             [정답 처리(콤보 UP)]: <span class="control-key">O 키</span> &nbsp;|&nbsp; 
             [오답 처리(라이프 DOWN)]: <span class="danger-key">X 키</span>
@@ -414,6 +415,8 @@
         let currentScore = 0;
         let teamNames = [];
         let teamScores = [0, 0, 0, 0, 0, 0, 0, 0]; // 8개 조의 최종 점수를 기록하는 배열
+        let historyStack = [];
+        let gameOverTimeout = null;
 
         const introWrapperEl = document.getElementById('intro-wrapper');
         const teamSetupSectionEl = document.getElementById('team-setup-section');
@@ -467,6 +470,8 @@
             combo = 0;
             currentScore = 0; // 시작 시 현재 진행 중인 게임 점수 초기화
             isAnswerShown = false;
+            historyStack = [];
+            if (gameOverTimeout) clearTimeout(gameOverTimeout);
 
             updateLivesDisplay();
             updateComboDisplay(false);
@@ -544,6 +549,7 @@
 
         // 정답 처리 (O키)
         function handleCorrect() {
+            historyStack.push({ index: currentIndex, lives: lives, combo: combo, score: currentScore });
             combo++;
             currentScore += 100 + (combo * 10); // 기본 100점 + 콤보당 10점 추가 보너스
             teamScores[currentSetIndex] = currentScore; // 글로벌 조별 점수판에도 현재 점수 저장
@@ -559,6 +565,7 @@
         function handleWrong() {
             if (lives <= 0) return; 
             
+            historyStack.push({ index: currentIndex, lives: lives, combo: combo, score: currentScore });
             combo = 0;
             lives--;
             updateComboDisplay(false);
@@ -568,7 +575,7 @@
             setTimeout(() => { slideContainerEl.style.backgroundColor = "#ffffff"; }, 200);
 
             if (lives <= 0) {
-                setTimeout(() => { alert(`💀 [${teamNames[currentSetIndex]}] 게임 오버! 최종 점수: ${currentScore}점`); returnToIntro(); }, 300);
+                gameOverTimeout = setTimeout(() => { alert(`💀 [${teamNames[currentSetIndex]}] 게임 오버! 최종 점수: ${currentScore}점`); returnToIntro(); }, 300);
             } else {
                 moveToNextQuestion(); 
             }
@@ -608,6 +615,29 @@
             timerBarContainerEl.style.display = 'none';
             introWrapperEl.style.display = 'flex';
         }
+        function goToPreviousQuestion() {
+            if (historyStack.length > 0) {
+                if (gameOverTimeout) {
+                    clearTimeout(gameOverTimeout);
+                    gameOverTimeout = null;
+                }
+                
+                const prevState = historyStack.pop();
+                currentIndex = prevState.index;
+                lives = prevState.lives;
+                combo = prevState.combo;
+                currentScore = prevState.score;
+                
+                updateLivesDisplay();
+                updateComboDisplay(false);
+                updateScoreDisplay();
+                teamScores[currentSetIndex] = currentScore;
+                
+                isAnswerShown = false;
+                updateSlide();
+            }
+        }
+
         // 키보드 인식 이벤트
         window.addEventListener('keydown', (e) => {
             if (introWrapperEl.style.display !== 'none') return;
@@ -626,6 +656,10 @@
             else if (code === 'KeyX' || key === 'x' || key === 'ㅌ') {
                 e.preventDefault();
                 handleWrong();
+            }
+            else if (code === 'Backspace' || code === 'ArrowLeft') {
+                e.preventDefault();
+                goToPreviousQuestion();
             }
         });    
     </script>
