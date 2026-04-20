@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>사구동성 경제활동 게임!</title>
     <style>
         /* 기본 초기화 및 폰트 설정 */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
             background-color: #f4f6f9;
@@ -25,7 +31,7 @@
             max-height: 100vh;
             max-width: 177.78vh;
             background-color: #ffffff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             border-radius: 20px;
             display: flex;
             flex-direction: column;
@@ -55,8 +61,12 @@
             gap: 2vw;
         }
 
-        #life-box { font-size: 3vw; color: #E53935; letter-spacing: 0.5vw; }
-        
+        #life-box {
+            font-size: 3vw;
+            color: #E53935;
+            letter-spacing: 0.5vw;
+        }
+
         /* 퀴즈 화면의 점수 표시 박스 */
         #score-box {
             font-size: 2.2vw;
@@ -65,9 +75,9 @@
             background: rgba(30, 136, 229, 0.1);
             padding: 0.5vw 1.5vw;
             border-radius: 15px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        
+
         .right-ui-group {
             display: flex;
             align-items: center;
@@ -93,24 +103,62 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: all 0.2s;
         }
-        .home-btn:hover { background-color: #455A64; transform: translateY(-2px); }
 
-        .combo-anim { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes pop {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
+        .home-btn:hover {
+            background-color: #455A64;
+            transform: translateY(-2px);
         }
 
-        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .combo-anim {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
-            40%, 60% { transform: translate3d(3px, 0, 0); }
+
+            10%,
+            90% {
+                transform: translate3d(-1px, 0, 0);
+            }
+
+            20%,
+            80% {
+                transform: translate3d(2px, 0, 0);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translate3d(-3px, 0, 0);
+            }
+
+            40%,
+            60% {
+                transform: translate3d(3px, 0, 0);
+            }
         }
 
         /* 타이머 바 */
@@ -127,12 +175,47 @@
             overflow: hidden;
         }
 
-        #timer-bar { height: 100%; width: 100%; background-color: #E53935; transform-origin: left; }
-        .run-timer { animation: shrinkTimer 4s linear forwards; }
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background-color: #E53935;
+            transform-origin: left;
+        }
+
+        .run-timer {
+            animation-name: shrinkTimer;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+        }
+
         @keyframes shrinkTimer {
-            0% { width: 100%; background-color: #4CAF50; }
-            50% { background-color: #FFEB3B; }
-            100% { width: 0%; background-color: #E53935; }
+            0% {
+                width: 100%;
+                background-color: #4CAF50;
+            }
+
+            50% {
+                background-color: #FFEB3B;
+            }
+
+            100% {
+                width: 0%;
+                background-color: #E53935;
+            }
+        }
+
+        .pulse {
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.05);
+            }
         }
 
         /* ---------- 인트로 및 조 이름 입력 화면 ---------- */
@@ -144,7 +227,12 @@
             width: 95%;
         }
 
-        #intro-title { font-size: 4vw; font-weight: 900; color: #2C3E50; margin-bottom: 1vw; }
+        #intro-title {
+            font-size: 4vw;
+            font-weight: 900;
+            color: #2C3E50;
+            margin-bottom: 1vw;
+        }
 
         #team-setup-section {
             display: grid;
@@ -158,8 +246,19 @@
             border: 2px solid #ddd;
         }
 
-        .team-input-group { display: flex; flex-direction: column; align-items: flex-start; }
-        .team-input-group label { font-size: 1vw; font-weight: bold; color: #666; margin-bottom: 0.3vw; }
+        .team-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .team-input-group label {
+            font-size: 1vw;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 0.3vw;
+        }
+
         .team-name-input {
             width: 100%;
             padding: 0.6vw;
@@ -180,10 +279,15 @@
             background: #e3f2fd;
             padding: 0.4vw;
             border-radius: 5px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        #set-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1vw; width: 85%; }
+        #set-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1vw;
+            width: 85%;
+        }
 
         .set-btn {
             padding: 1.2vw;
@@ -195,10 +299,13 @@
             color: white;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .set-btn:hover { background-color: #1565C0; transform: translateY(-2px); }
+        .set-btn:hover {
+            background-color: #1565C0;
+            transform: translateY(-2px);
+        }
 
         /* ---------- 퀴즈 화면 스타일 ---------- */
         #content-wrapper {
@@ -220,7 +327,13 @@
             margin-bottom: 1vw;
         }
 
-        #question-number { font-size: 1.8vw; color: #888; font-weight: bold; margin-bottom: 1vw; letter-spacing: 1px; }
+        #question-number {
+            font-size: 1.8vw;
+            color: #888;
+            font-weight: bold;
+            margin-bottom: 1vw;
+            letter-spacing: 1px;
+        }
 
         #question-text {
             font-size: 4vw;
@@ -235,29 +348,63 @@
             justify-content: center;
         }
 
-        #answer-section { visibility: hidden; display: flex; flex-direction: column; align-items: center; min-height: 12vw; }
-        #answer-section.show { visibility: visible; }
-        #answer-text { font-size: 7.5vw; font-weight: 900; margin-bottom: 0.5vw; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
-        #explanation-text { font-size: 2vw; color: #555; background-color: #f0f0f0; padding: 0.8vw 2vw; border-radius: 10px; word-break: keep-all; }
+        #answer-section {
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 12vw;
+        }
+
+        #answer-section.show {
+            visibility: visible;
+        }
+
+        #answer-text {
+            font-size: 7.5vw;
+            font-weight: 900;
+            margin-bottom: 0.5vw;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #explanation-text {
+            font-size: 2vw;
+            color: #555;
+            background-color: #f0f0f0;
+            padding: 0.8vw 2vw;
+            border-radius: 10px;
+            word-break: keep-all;
+        }
 
         #footer-guide {
             position: absolute;
             bottom: 1.5vw;
             font-size: 1.1vw;
             color: #888;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.8);
             padding: 0.5vw 1vw;
             border-radius: 10px;
         }
-        .control-key { font-weight: bold; color: #1E88E5; }
-        .danger-key { font-weight: bold; color: #E53935; }
+
+        .control-key {
+            font-weight: bold;
+            color: #1E88E5;
+        }
+
+        .danger-key {
+            font-weight: bold;
+            color: #E53935;
+        }
     </style>
 </head>
+
 <body>
 
     <div id="slide-container">
-        <div id="timer-bar-container"><div id="timer-bar"></div></div>
-        
+        <div id="timer-bar-container">
+            <div id="timer-bar"></div>
+        </div>
+
         <div id="top-ui">
             <div class="left-ui-group">
                 <div id="life-box">❤️❤️❤️</div>
@@ -271,19 +418,41 @@
 
         <div id="intro-wrapper">
             <h1 id="intro-title">🗣️ 사구동성! 조별 경제 퀴즈</h1>
-            
+
+            <div id="global-setup-section"
+                style="margin-bottom: 1.5vw; background: #e3f2fd; padding: 1vw; border-radius: 10px; width: 90%; display: flex; align-items: center; justify-content: center; gap: 1vw;">
+                <label style="font-size: 1.5vw; font-weight: bold; color: #1E88E5;">⏱️ 타이머 설정(초):</label>
+                <input type="number" id="timer-setting" value="4" min="1" max="60"
+                    style="width: 5vw; padding: 0.5vw; font-size: 1.5vw; text-align: center; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
+            </div>
+
             <div id="team-setup-section">
-                </div>
+            </div>
 
             <div id="set-container">
-                </div>
+            </div>
+        </div>
+
+        <div id="preparation-screen"
+            style="display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; z-index: 20; position: absolute; background: #f4f6f9;"
+            onclick="startQuizFromPrep()">
+            <button class="home-btn" style="position: absolute; top: 2vw; right: 3vw;"
+                onclick="event.stopPropagation(); returnToIntro()">🏠 홈으로</button>
+            <div id="prep-team-name"
+                style="background-color: #2C3E50; color: white; padding: 0.5vw 2vw; border-radius: 50px; font-size: 2vw; font-weight: bold; margin-bottom: 2vw;">
+                조 이름</div>
+            <h2 id="prep-set-name" style="font-size: 4vw; color: #1E88E5; margin-bottom: 1vw;">세트 1</h2>
+            <div style="font-size: 3vw; font-weight: 900; color: #333; margin-bottom: 3vw;">준비되셨나요?</div>
+            <div class="pulse"
+                style="font-size: 1.5vw; color: #E53935; background: #ffcdd2; padding: 1vw 2vw; border-radius: 10px; font-weight: bold; cursor: pointer;">
+                스페이스바(Enter)를 누르거나 화면을 클릭하여 시작하세요!</div>
         </div>
 
         <div id="content-wrapper">
             <div id="team-badge">조 이름</div>
             <div id="question-number">세트 1 - 문제 1 / 10</div>
             <div id="question-text">여기에 문제가 표시됩니다.</div>
-            
+
             <div id="answer-section">
                 <div id="answer-text">정답</div>
                 <div id="explanation-text">여기에 해설이 표시됩니다.</div>
@@ -292,8 +461,8 @@
 
         <div id="footer-guide">
             [이전 문제]: <span class="control-key">← (좌방향키)</span> &nbsp;|&nbsp;
-            [정답 확인]: <span class="control-key">Enter / Space</span> &nbsp;|&nbsp; 
-            [정답 처리(콤보 UP)]: <span class="control-key">O 키</span> &nbsp;|&nbsp; 
+            [정답 확인]: <span class="control-key">Enter / Space</span> &nbsp;|&nbsp;
+            [정답 처리(콤보 UP)]: <span class="control-key">O 키</span> &nbsp;|&nbsp;
             [오답 처리(라이프 DOWN)]: <span class="danger-key">X 키</span>
         </div>
     </div>
@@ -417,6 +586,8 @@
         let teamScores = [0, 0, 0, 0, 0, 0, 0, 0]; // 8개 조의 최종 점수를 기록하는 배열
         let historyStack = [];
         let gameOverTimeout = null;
+        let isPreparing = false;
+        let userTimerDuration = 4;
 
         const introWrapperEl = document.getElementById('intro-wrapper');
         const teamSetupSectionEl = document.getElementById('team-setup-section');
@@ -437,7 +608,7 @@
         const explanationTextEl = document.getElementById('explanation-text');
 
         // 초기 설정: 입력창과 세트 버튼 동적 생성
-        for(let i=1; i<=8; i++) {
+        for (let i = 1; i <= 8; i++) {
             const group = document.createElement('div');
             group.className = 'team-input-group';
             // 각 조 이름 입력칸 아래에 조별 점수를 보여주는 박스 추가
@@ -451,17 +622,19 @@
             const btn = document.createElement('button');
             btn.className = 'set-btn';
             btn.textContent = `세트 ${i} 시작`;
-            btn.onclick = () => startGame(i-1);
+            btn.onclick = () => startGame(i - 1);
             setContainerEl.appendChild(btn);
         }
 
         // 게임 시작 로직
         function startGame(setIndex) {
             teamNames = [];
-            for(let i=1; i<=8; i++) {
+            for (let i = 1; i <= 8; i++) {
                 const val = document.getElementById(`team-in-${i}`).value.trim();
                 teamNames.push(val || `${i}조`);
             }
+
+            userTimerDuration = parseInt(document.getElementById('timer-setting').value) || 4;
 
             currentSetIndex = setIndex;
             currentQuizData = allQuizData[setIndex];
@@ -471,6 +644,7 @@
             currentScore = 0; // 시작 시 현재 진행 중인 게임 점수 초기화
             isAnswerShown = false;
             historyStack = [];
+            isPreparing = true;
             if (gameOverTimeout) clearTimeout(gameOverTimeout);
 
             updateLivesDisplay();
@@ -478,16 +652,29 @@
             updateScoreDisplay();
 
             introWrapperEl.style.display = 'none';
+
+            // 준비 화면 표시
+            const prepScreenEl = document.getElementById('preparation-screen');
+            document.getElementById('prep-team-name').textContent = teamNames[currentSetIndex];
+            document.getElementById('prep-set-name').textContent = `세트 ${currentSetIndex + 1}`;
+            prepScreenEl.style.display = 'flex';
+        }
+
+        function startQuizFromPrep() {
+            if (!isPreparing) return;
+            isPreparing = false;
+            document.getElementById('preparation-screen').style.display = 'none';
+
             contentWrapperEl.style.display = 'flex';
             topUiEl.style.display = 'flex';
             timerBarContainerEl.style.display = 'block';
-            
+
             updateSlide();
         }
 
         function updateLivesDisplay() {
             let hearts = '';
-            for(let i=0; i<3; i++) hearts += (i < lives) ? '❤️' : '🖤';
+            for (let i = 0; i < 3; i++) hearts += (i < lives) ? '❤️' : '🖤';
             lifeBoxEl.textContent = hearts;
         }
 
@@ -499,7 +686,7 @@
             if (combo > 1) {
                 comboBoxEl.textContent = `${combo} COMBO!`;
                 comboBoxEl.style.opacity = 1;
-                if(animate) {
+                if (animate) {
                     comboBoxEl.classList.remove('combo-anim');
                     void comboBoxEl.offsetWidth;
                     comboBoxEl.classList.add('combo-anim');
@@ -510,6 +697,7 @@
         function resetTimer() {
             timerBarEl.classList.remove('run-timer');
             void timerBarEl.offsetWidth;
+            timerBarEl.style.animationDuration = userTimerDuration + 's';
             timerBarEl.classList.add('run-timer');
         }
 
@@ -522,16 +710,16 @@
         function updateSlide() {
             const data = currentQuizData[currentIndex];
             const currentTeam = teamNames[currentSetIndex];
-            
+
             teamBadgeEl.textContent = currentTeam;
             questionNumEl.textContent = `세트 ${currentSetIndex + 1} - 문제 ${currentIndex + 1} / 10`;
             questionTextEl.textContent = data.q;
             answerTextEl.textContent = data.a;
             explanationTextEl.textContent = data.exp;
 
-            if(data.a === "생산") answerTextEl.style.color = "#1E88E5"; 
-            else if(data.a === "분배") answerTextEl.style.color = "#43A047"; 
-            else if(data.a === "소비") answerTextEl.style.color = "#E53935"; 
+            if (data.a === "생산") answerTextEl.style.color = "#1E88E5";
+            else if (data.a === "분배") answerTextEl.style.color = "#43A047";
+            else if (data.a === "소비") answerTextEl.style.color = "#E53935";
 
             if (isAnswerShown) {
                 answerSectionEl.classList.add('show');
@@ -553,18 +741,18 @@
             combo++;
             currentScore += 100 + (combo * 10); // 기본 100점 + 콤보당 10점 추가 보너스
             teamScores[currentSetIndex] = currentScore; // 글로벌 조별 점수판에도 현재 점수 저장
-            
+
             updateScoreDisplay();
             updateComboDisplay(true);
-            
-            if(combo >= 3) triggerShake();
-            moveToNextQuestion(); 
+
+            if (combo >= 3) triggerShake();
+            moveToNextQuestion();
         }
 
         // 오답 처리 (X키)
         function handleWrong() {
-            if (lives <= 0) return; 
-            
+            if (lives <= 0) return;
+
             historyStack.push({ index: currentIndex, lives: lives, combo: combo, score: currentScore });
             combo = 0;
             lives--;
@@ -577,7 +765,7 @@
             if (lives <= 0) {
                 gameOverTimeout = setTimeout(() => { alert(`💀 [${teamNames[currentSetIndex]}] 게임 오버! 최종 점수: ${currentScore}점`); returnToIntro(); }, 300);
             } else {
-                moveToNextQuestion(); 
+                moveToNextQuestion();
             }
         }
 
@@ -592,24 +780,26 @@
             }
         }
 
-// 초기 화면으로 복귀하는 기능 (홈버튼과 게임오버 시 작동)
+        // 초기 화면으로 복귀하는 기능 (홈버튼과 게임오버 시 작동)
         function returnToIntro() {
             // 1. 현재 8개 조 중 최고 점수 찾기
             const maxScore = Math.max(...teamScores);
 
             // 2. 메인 화면으로 돌아갈 때, 점수판 업데이트 및 왕관 표시
-            for(let i=1; i<=8; i++) {
+            for (let i = 1; i <= 8; i++) {
                 const scoreDisplayEl = document.getElementById(`team-score-${i}`);
-                if(scoreDisplayEl) {
+                if (scoreDisplayEl) {
                     // 최고 점수이면서 0점보다 높을 때만 점수 앞에 왕관(👑) 추가
-                    if (teamScores[i-1] === maxScore && maxScore > 0) {
-                        scoreDisplayEl.textContent = `👑 ${teamScores[i-1]} 점`;
+                    if (teamScores[i - 1] === maxScore && maxScore > 0) {
+                        scoreDisplayEl.textContent = `👑 ${teamScores[i - 1]} 점`;
                     } else {
-                        scoreDisplayEl.textContent = `${teamScores[i-1]} 점`;
+                        scoreDisplayEl.textContent = `${teamScores[i - 1]} 점`;
                     }
                 }
             }
 
+            document.getElementById('preparation-screen').style.display = 'none';
+            isPreparing = false;
             contentWrapperEl.style.display = 'none';
             topUiEl.style.display = 'none';
             timerBarContainerEl.style.display = 'none';
@@ -621,18 +811,18 @@
                     clearTimeout(gameOverTimeout);
                     gameOverTimeout = null;
                 }
-                
+
                 const prevState = historyStack.pop();
                 currentIndex = prevState.index;
                 lives = prevState.lives;
                 combo = prevState.combo;
                 currentScore = prevState.score;
-                
+
                 updateLivesDisplay();
                 updateComboDisplay(false);
                 updateScoreDisplay();
                 teamScores[currentSetIndex] = currentScore;
-                
+
                 isAnswerShown = false;
                 updateSlide();
             }
@@ -645,14 +835,22 @@
             const code = e.code;
             const key = e.key.toLowerCase();
 
+            if (isPreparing) {
+                if (code === 'Enter' || code === 'Space' || key === ' ') {
+                    e.preventDefault();
+                    startQuizFromPrep();
+                }
+                return;
+            }
+
             if (code === 'Enter' || code === 'Space' || key === ' ') {
                 e.preventDefault();
                 showAnswerAction();
-            } 
+            }
             else if (code === 'KeyO' || key === 'o' || key === 'ㅐ') {
                 e.preventDefault();
                 handleCorrect();
-            } 
+            }
             else if (code === 'KeyX' || key === 'x' || key === 'ㅌ') {
                 e.preventDefault();
                 handleWrong();
@@ -664,4 +862,5 @@
         });    
     </script>
 </body>
+
 </html>
