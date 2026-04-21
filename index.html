@@ -463,6 +463,12 @@
                 화면을 클릭하거나 Enter를 눌러 메인으로 돌아가기</div>
         </div>
 
+        <!-- 정답/오답 피드백 오버레이 -->
+        <div id="feedback-overlay"
+            style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 25; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px);">
+            <div id="feedback-text" style="font-size: 15vw; font-weight: 900;"></div>
+        </div>
+
         <div id="content-wrapper">
             <div id="team-badge">조 이름</div>
             <div id="question-number">세트 1 - 문제 1 / 10</div>
@@ -752,6 +758,8 @@
 
         // 정답 처리 (O키)
         function handleCorrect() {
+            if (typeof isFeedbackShowing !== 'undefined' && isFeedbackShowing) return;
+
             historyStack.push({ index: currentIndex, lives: lives, combo: combo, score: currentScore });
             combo++;
             currentScore += 100 + (combo * 10); // 기본 100점 + 콤보당 10점 추가 보너스
@@ -761,10 +769,41 @@
             updateComboDisplay(true);
 
             if (combo >= 3) triggerShake();
-            moveToNextQuestion();
+            
+            triggerFeedback(true, () => {
+                moveToNextQuestion();
+            });
         }
 
         let isResultScreenShowing = false;
+        let isFeedbackShowing = false;
+
+        function triggerFeedback(isCorrect, callback) {
+            isFeedbackShowing = true;
+            const overlay = document.getElementById('feedback-overlay');
+            const feedbackText = document.getElementById('feedback-text');
+
+            if (isCorrect) {
+                feedbackText.textContent = '⭕ 정답!';
+                feedbackText.style.color = '#1E88E5';
+            } else {
+                feedbackText.textContent = '❌ 오답...';
+                feedbackText.style.color = '#E53935';
+            }
+
+            overlay.style.display = 'flex';
+            
+            // 텍스트 팝 애니메이션 리셋
+            feedbackText.classList.remove('combo-anim');
+            void feedbackText.offsetWidth;
+            feedbackText.classList.add('combo-anim');
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                isFeedbackShowing = false;
+                if (callback) callback();
+            }, 800); // 0.8초 후 사라지고 다음 동작 수행
+        }
 
         function showResultScreen(isClear) {
             isResultScreenShowing = true;
@@ -798,7 +837,7 @@
 
         // 오답 처리 (X키)
         function handleWrong() {
-            if (lives <= 0) return;
+            if (lives <= 0 || (typeof isFeedbackShowing !== 'undefined' && isFeedbackShowing)) return;
 
             historyStack.push({ index: currentIndex, lives: lives, combo: combo, score: currentScore });
             combo = 0;
@@ -809,11 +848,13 @@
             slideContainerEl.style.backgroundColor = "#ffebee";
             setTimeout(() => { slideContainerEl.style.backgroundColor = "#ffffff"; }, 200);
 
-            if (lives <= 0) {
-                gameOverTimeout = setTimeout(() => { showResultScreen(false); }, 300);
-            } else {
-                moveToNextQuestion();
-            }
+            triggerFeedback(false, () => {
+                if (lives <= 0) {
+                    showResultScreen(false);
+                } else {
+                    moveToNextQuestion();
+                }
+            });
         }
 
         function moveToNextQuestion() {
@@ -822,7 +863,7 @@
                 isAnswerShown = false;
                 updateSlide();
             } else {
-                setTimeout(() => { showResultScreen(true); }, 300);
+                showResultScreen(true);
             }
         }
 
@@ -871,6 +912,11 @@
         }
         function goToPreviousQuestion() {
             if (historyStack.length > 0) {
+                if (typeof isResultScreenShowing !== 'undefined' && isResultScreenShowing) {
+                    isResultScreenShowing = false;
+                    document.getElementById('result-screen').style.display = 'none';
+                }
+
                 if (gameOverTimeout) {
                     clearTimeout(gameOverTimeout);
                     gameOverTimeout = null;
@@ -895,6 +941,7 @@
         // 키보드 인식 이벤트
         window.addEventListener('keydown', (e) => {
             if (introWrapperEl.style.display !== 'none') return;
+            if (typeof isFeedbackShowing !== 'undefined' && isFeedbackShowing) return; // 피드백 연출 중에는 모든 단축키 무시
 
             const code = e.code;
             const key = e.key.toLowerCase();
