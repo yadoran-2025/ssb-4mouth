@@ -416,7 +416,13 @@
             </div>
         </div>
 
-        <div id="intro-wrapper">
+        <div id="intro-wrapper" style="position: relative; width: 95%;">
+            <button onclick="window.open('guide.html', '_blank')" title="클릭하면 게임 설명과 매뉴얼이 새 탭에서 열립니다."
+                style="position: absolute; top: -1vw; right: 0; padding: 0.8vw 1.2vw; font-size: 1.2vw; font-weight: bold; color: white; background-color: #4CAF50; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; z-index: 50;"
+                onmouseover="this.style.backgroundColor='#388E3C'; this.style.transform='translateY(-2px)'"
+                onmouseout="this.style.backgroundColor='#4CAF50'; this.style.transform='none'">
+                📖 게임 설명
+            </button>
             <h1 id="intro-title">🗣️ 사구동성! 경제활동 퀴즈</h1>
 
             <div id="global-setup-section"
