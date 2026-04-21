@@ -417,7 +417,7 @@
         </div>
 
         <div id="intro-wrapper">
-            <h1 id="intro-title">🗣️ 사구동성! 조별 경제 퀴즈</h1>
+            <h1 id="intro-title">🗣️ 사구동성! 경제활동 퀴즈</h1>
 
             <div id="global-setup-section"
                 style="margin-bottom: 1.5vw; background: #e3f2fd; padding: 1vw; border-radius: 10px; width: 90%; display: flex; align-items: center; justify-content: center; gap: 1vw;">
@@ -446,6 +446,19 @@
             <div class="pulse"
                 style="font-size: 1.5vw; color: #E53935; background: #ffcdd2; padding: 1vw 2vw; border-radius: 10px; font-weight: bold; cursor: pointer;">
                 스페이스바(Enter)를 누르거나 화면을 클릭하여 시작하세요!</div>
+        </div>
+
+        <!-- 결과 화면 (거대하게 뜨는 팝업) -->
+        <div id="result-screen"
+            style="display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; z-index: 30; position: absolute; background: #f4f6f9;"
+            onclick="closeResultScreen()">
+            <div id="result-emoji" style="font-size: 8vw; margin-bottom: 1vw; animation: pop 0.5s ease-out;">🏆</div>
+            <h2 id="result-title" style="font-size: 5vw; font-weight: 900; margin-bottom: 1vw;">세트 클리어!</h2>
+            <div id="result-score-title" style="font-size: 2vw; color: #666; margin-bottom: 0.5vw;">최종 획득 점수</div>
+            <div id="result-score" style="font-size: 12vw; font-weight: 900; color: #1E88E5; margin-bottom: 3vw; text-shadow: 4px 4px 0px rgba(0,0,0,0.1);">0 점</div>
+            <div class="pulse"
+                style="font-size: 1.5vw; color: #fff; background: #1E88E5; padding: 1.2vw 3vw; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                화면을 클릭하거나 Enter를 눌러 메인으로 돌아가기</div>
         </div>
 
         <div id="content-wrapper">
@@ -749,6 +762,38 @@
             moveToNextQuestion();
         }
 
+        let isResultScreenShowing = false;
+
+        function showResultScreen(isClear) {
+            isResultScreenShowing = true;
+            const resultScreenEl = document.getElementById('result-screen');
+            const emojiEl = document.getElementById('result-emoji');
+            const titleEl = document.getElementById('result-title');
+            const scoreEl = document.getElementById('result-score');
+            
+            if (isClear) {
+                emojiEl.textContent = '🏆';
+                titleEl.textContent = `[${teamNames[currentSetIndex]}] 세트 클리어!`;
+                titleEl.style.color = '#1E88E5';
+                scoreEl.style.color = '#1E88E5';
+            } else {
+                emojiEl.textContent = '💀';
+                titleEl.textContent = `[${teamNames[currentSetIndex]}] 게임 오버...`;
+                titleEl.style.color = '#D32F2F';
+                scoreEl.style.color = '#D32F2F';
+            }
+            scoreEl.textContent = `${currentScore} 점`;
+            
+            resultScreenEl.style.display = 'flex';
+        }
+
+        function closeResultScreen() {
+            if (!isResultScreenShowing) return;
+            isResultScreenShowing = false;
+            document.getElementById('result-screen').style.display = 'none';
+            returnToIntro();
+        }
+
         // 오답 처리 (X키)
         function handleWrong() {
             if (lives <= 0) return;
@@ -763,7 +808,7 @@
             setTimeout(() => { slideContainerEl.style.backgroundColor = "#ffffff"; }, 200);
 
             if (lives <= 0) {
-                gameOverTimeout = setTimeout(() => { alert(`💀 [${teamNames[currentSetIndex]}] 게임 오버! 최종 점수: ${currentScore}점`); returnToIntro(); }, 300);
+                gameOverTimeout = setTimeout(() => { showResultScreen(false); }, 300);
             } else {
                 moveToNextQuestion();
             }
@@ -775,8 +820,7 @@
                 isAnswerShown = false;
                 updateSlide();
             } else {
-                alert(`🏆 축하합니다! [${teamNames[currentSetIndex]}] 세트 클리어! 최종 점수: ${currentScore}점`);
-                returnToIntro();
+                setTimeout(() => { showResultScreen(true); }, 300);
             }
         }
 
@@ -789,12 +833,30 @@
             for (let i = 1; i <= 8; i++) {
                 const scoreDisplayEl = document.getElementById(`team-score-${i}`);
                 if (scoreDisplayEl) {
-                    // 최고 점수이면서 0점보다 높을 때만 점수 앞에 왕관(👑) 추가
-                    if (teamScores[i - 1] === maxScore && maxScore > 0) {
-                        scoreDisplayEl.textContent = `👑 ${teamScores[i - 1]} 점`;
-                    } else {
-                        scoreDisplayEl.textContent = `${teamScores[i - 1]} 점`;
+                    const score = teamScores[i - 1];
+                    let textContent = `${score} 점`;
+                    
+                    // 기본 색상(파란색) 및 배경 리셋
+                    scoreDisplayEl.style.color = "#1E88E5";
+                    scoreDisplayEl.style.background = "#e3f2fd";
+
+                    // 플레이 기록이 있는 경우(0점 초과)
+                    if (score > 0) {
+                        // 800점 이하는 붉은색 폰트 및 붉은색 배경 음영 처리
+                        if (score <= 800) {
+                            scoreDisplayEl.style.color = "#D32F2F";
+                            scoreDisplayEl.style.background = "#ffebee";
+                        }
+
+                        // 500점 이하는 해골 마크, 최고 점수는 왕관 마크
+                        if (score <= 500) {
+                            textContent = `💀 ${score} 점`;
+                        } else if (score === maxScore) {
+                            textContent = `👑 ${score} 점`;
+                        }
                     }
+
+                    scoreDisplayEl.textContent = textContent;
                 }
             }
 
@@ -834,6 +896,14 @@
 
             const code = e.code;
             const key = e.key.toLowerCase();
+
+            if (typeof isResultScreenShowing !== 'undefined' && isResultScreenShowing) {
+                if (code === 'Enter' || code === 'Space' || key === ' ') {
+                    e.preventDefault();
+                    closeResultScreen();
+                }
+                return;
+            }
 
             if (isPreparing) {
                 if (code === 'Enter' || code === 'Space' || key === ' ') {
