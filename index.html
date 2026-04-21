@@ -455,7 +455,9 @@
             <div id="result-emoji" style="font-size: 8vw; margin-bottom: 1vw; animation: pop 0.5s ease-out;">🏆</div>
             <h2 id="result-title" style="font-size: 5vw; font-weight: 900; margin-bottom: 1vw;">세트 클리어!</h2>
             <div id="result-score-title" style="font-size: 2vw; color: #666; margin-bottom: 0.5vw;">최종 획득 점수</div>
-            <div id="result-score" style="font-size: 12vw; font-weight: 900; color: #1E88E5; margin-bottom: 3vw; text-shadow: 4px 4px 0px rgba(0,0,0,0.1);">0 점</div>
+            <div id="result-score"
+                style="font-size: 12vw; font-weight: 900; color: #1E88E5; margin-bottom: 3vw; text-shadow: 4px 4px 0px rgba(0,0,0,0.1);">
+                0 점</div>
             <div class="pulse"
                 style="font-size: 1.5vw; color: #fff; background: #1E88E5; padding: 1.2vw 3vw; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
                 화면을 클릭하거나 Enter를 눌러 메인으로 돌아가기</div>
@@ -511,7 +513,7 @@
             // [세트 3]
             [
                 { q: "지하상가에서 마음에 드는 오버핏 맨투맨 티셔츠를 사는 것", a: "소비", exp: "재화를 구매하는 행위" },
-                { q: "단골 미용실에서 내 앞머리와 뒷머리를 예쁘게 자르는 것", a: "생산", exp: "미용 서비스를 창출하는 행위" },
+                { q: "내가 단골 미용실에 가서 내 앞머리와 뒷머리를 예쁘게 자르는 것", a: "생산", exp: "미용 서비스를 창출하는 행위" },
                 { q: "엄마가 마트 정육 코너에서 저녁 거리로 삼겹살 2근을 사 오시는 것", a: "소비", exp: "식자재(재화)를 구매하는 행위" },
                 { q: "응급실에서 의사가 교통사고로 다친 환자를 수술하는 것", a: "생산", exp: "의료 서비스를 제공하는 행위" },
                 { q: "시골 할아버지가 밭을 빌려주고 매년 추수철에 땅값을 받는 것", a: "분배", exp: "토지 제공의 대가(지대)를 수취하는 행위" },
@@ -770,7 +772,7 @@
             const emojiEl = document.getElementById('result-emoji');
             const titleEl = document.getElementById('result-title');
             const scoreEl = document.getElementById('result-score');
-            
+
             if (isClear) {
                 emojiEl.textContent = '🏆';
                 titleEl.textContent = `[${teamNames[currentSetIndex]}] 세트 클리어!`;
@@ -783,7 +785,7 @@
                 scoreEl.style.color = '#D32F2F';
             }
             scoreEl.textContent = `${currentScore} 점`;
-            
+
             resultScreenEl.style.display = 'flex';
         }
 
@@ -835,7 +837,7 @@
                 if (scoreDisplayEl) {
                     const score = teamScores[i - 1];
                     let textContent = `${score} 점`;
-                    
+
                     // 기본 색상(파란색) 및 배경 리셋
                     scoreDisplayEl.style.color = "#1E88E5";
                     scoreDisplayEl.style.background = "#e3f2fd";
