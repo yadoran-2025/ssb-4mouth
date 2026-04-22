@@ -587,7 +587,8 @@
                         masterQuestionPool.push({
                             q: row['질문 내용'],
                             a: row['정답'],
-                            exp: row['해설'] || ''
+                            exp: row['해설'] || '',
+                            type: row['정답'] // 정답값(생산/분배/소비)을 유형으로 사용
                         });
                     });
 
@@ -603,6 +604,60 @@
                     setContainerEl.innerHTML = '<div style="grid-column: 1 / -1; font-size: 2vw; font-weight: bold; color: #E53935; text-align: center; padding: 2vw;">데이터 로딩에 실패했습니다. 사이트를 새로고침 해주세요.</div>';
                 }
             });
+        }
+
+        /**
+         * [방법 2] 조건부 구성(Constructive) 셔플:
+         * 남은 풀에서 하나씩 뽑되, 직전 2개가 같은 유형이면 그 유형을 제외하고 뽑음.
+         * 막다른 길(후보 없음)에 빠지면 재시도. 100회 초과 시 단순 슬라이싱으로 폴백.
+         */
+        function constrainedShuffle(pool, count) {
+            const MAX_ATTEMPTS = 100;
+            for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+                // 1단계: 풀 자체를 Fisher-Yates로 랜덤하게 섞음
+                let remaining = [...pool];
+                for (let i = remaining.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+                }
+
+                // 2단계: 조건부로 하나씩 뽑아서 결과 배열 구성
+                const result = [];
+                let deadEnd = false;
+
+                while (result.length < count) {
+                    // 직전 2개가 같은 유형이면 그 유형은 제한
+                    let restrictedType = null;
+                    const len = result.length;
+                    if (len >= 2 && result[len - 1].type === result[len - 2].type) {
+                        restrictedType = result[len - 1].type;
+                    }
+
+                    // 제한 유형을 제외한 후보군
+                    const candidates = remaining.filter(q => q.type !== restrictedType);
+
+                    if (candidates.length === 0) {
+                        deadEnd = true; // 막다른 길 → 재시도
+                        break;
+                    }
+
+                    // 후보군 중 랜덤 선택
+                    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+                    result.push(pick);
+                    remaining.splice(remaining.indexOf(pick), 1);
+                }
+
+                if (!deadEnd) return result; // 성공 시 반환
+            }
+
+            // 100회 실패 시 경고 후 단순 슬라이싱 폴백
+            console.warn('[constrainedShuffle] 100회 시도 실패. 제약 없이 반환합니다. 특정 유형이 너무 많은지 확인하세요.');
+            const fallback = [...pool];
+            for (let i = fallback.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [fallback[i], fallback[j]] = [fallback[j], fallback[i]];
+            }
+            return fallback.slice(0, count);
         }
 
         // 전체 문항 풀에서 무작위 세트 생성
@@ -621,20 +676,23 @@
                 return;
             }
 
-            // 배열 복사 후 셔플 (Fisher-Yates)
-            let shuffled = [...masterQuestionPool];
-            for (let i = shuffled.length - 1; i > 0; i--) {
+            // 전체 풀을 먼저 Fisher-Yates로 1차 셔플
+            let globalPool = [...masterQuestionPool];
+            for (let i = globalPool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                [globalPool[i], globalPool[j]] = [globalPool[j], globalPool[i]];
             }
 
+            // 각 세트별로 constrainedShuffle을 적용하여 중복 없이 뽑기
             allQuizData = [];
-            let currentIndex = 0;
+            let usedPool = globalPool; // 남은 풀 추적
 
             for (let i = 0; i < numOfSetsInput; i++) {
-                const setArr = shuffled.slice(currentIndex, currentIndex + qPerSetInput);
+                const setArr = constrainedShuffle(usedPool, qPerSetInput);
                 allQuizData.push(setArr);
-                currentIndex += qPerSetInput;
+                // 이미 뽑힌 문항을 풀에서 제거
+                const pickedSet = new Set(setArr);
+                usedPool = usedPool.filter(q => !pickedSet.has(q));
             }
 
             // 설정 완료 후 UI 생성
