@@ -1,0 +1,24 @@
+{
+  "name": "ssb-4mouth",
+  "version": "1.0.0",
+  "description": "- 일상생활 속 경제 활동 예시를 통한 경제 3요소(생산, 소비, 분배) 학습 게임 - 웹 브라우저 기반 프레젠테이션용 소프트웨어 - 교사 주도하에 조별 대항전 형식으로 진행되는 참여형 수업 도구",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yadoran-2025/ssb-4mouth.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/yadoran-2025/ssb-4mouth/issues"
+  },
+  "homepage": "https://github.com/yadoran-2025/ssb-4mouth#readme",
+  "dependencies": {
+    "@yadoran-2025/booong-design-system": "^2.1.0"
+  }
+}
